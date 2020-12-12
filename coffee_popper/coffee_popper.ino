@@ -66,12 +66,8 @@ void loop() {
     analogWrite(heaterSSRPin, 0);
   }
 
-//  Serial.print("Int. Temp = ");
-//  Serial.println(thermocouple.readInternal());
-  Serial.print("Ext. Temp = ");
+  Serial.print("Temp = ");
   Serial.println(thermocouple.readFahrenheit());
-  
-
 }
 
 /*
