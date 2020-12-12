@@ -1,3 +1,5 @@
+#include "Adafruit_MAX31855.h"
+
 /*
   CoffeePopper
 
@@ -27,6 +29,14 @@ int lastPowerButtonState = LOW;   // the previous reading from the input pin
 unsigned long lastDebounceTime = 0;  // the last time the output pin was toggled
 unsigned long debounceDelay = 50;    // the debounce time; increase if the output flickers
 
+// Thermocouple
+#define MAXDO   5
+#define MAXCS   4
+#define MAXCLK  3
+
+// Initialize the Thermocouple
+Adafruit_MAX31855 thermocouple(MAXCLK, MAXCS, MAXDO);
+
 int roasterOn = 0;
 int powerButtonState = 0;
 
@@ -34,12 +44,19 @@ void setup() {
   pinMode(powerButtonPin, INPUT);
   pinMode(heaterSSRPin, OUTPUT);
   pinMode(mainSSRPin, OUTPUT);
+
+  Serial.begin(9600);
+
+  if (!thermocouple.begin()) {
+    Serial.println("ERROR.");
+    while (1) delay(10);
+  }
 }
 
 void loop() {
   updateRoasterPowerState(); // toggles roasterOn
   digitalWrite(mainSSRPin, roasterOn);
-  
+
   if (roasterOn) {
     int reading = analogRead(heaterPotPin);
     int mappedReading = map(reading, 0, 1023, 0, 255);
@@ -48,18 +65,24 @@ void loop() {
   else {
     analogWrite(heaterSSRPin, 0);
   }
+
+//  Serial.print("Int. Temp = ");
+//  Serial.println(thermocouple.readInternal());
+  Serial.print("Ext. Temp = ");
+  Serial.println(thermocouple.readFahrenheit());
   
+
 }
 
 /*
- * updateRoasterPowerState()
- * 
- * This power button is a toggle to turn the roaster on and off.
- * Check for debouncing, and if a valid press is detected,
- * flip the roaster's power state.
- */
+   updateRoasterPowerState()
+
+   This power button is a toggle to turn the roaster on and off.
+   Check for debouncing, and if a valid press is detected,
+   flip the roaster's power state.
+*/
 void updateRoasterPowerState() {
-  
+
   int buttonReading = digitalRead(powerButtonPin);
 
   // If the button reading changed, due to noise or pressing:
